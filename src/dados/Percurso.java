@@ -10,7 +10,7 @@ public class Percurso implements Serializable {
     private String origem;
     private String destino;
     private int capacidade;
-    private Map<Date, Voo> dias;
+    private Map<Integer, Voo> dias;
     ReentrantLock rlPercurso = new ReentrantLock();
 
     public String getOrigem() {
@@ -47,7 +47,7 @@ public class Percurso implements Serializable {
         for ( int i = 1 ; i < 31 ; i++) {
             String codigoViagem = generateID();
             Voo voo = new Voo(nLugares,codigoViagem);
-            dias.put(LocalDateTime.now().getDayOfYear(),voo);
+            dias.put(i,voo);
         }
     }
 
