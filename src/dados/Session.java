@@ -1,10 +1,11 @@
 package dados;
 
+
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
 
-import Connection;
 import service.Service;
+import conexao.Conexao;
 
 public class Session {
     private final Service service;
@@ -17,21 +18,20 @@ public class Session {
     }
 
     public void serve() throws Exception {
-        Connection connection = new Connection(sock);
-        var req = connection.receive();
+        Conexao connection = new Conexao(sock);
 
-        while(req != null) {
-            new Thread(()->{
-                var rep = service.execute(req);
-                try{
-                    rlSession.lock();
-                    ser.send(rep);
+            while (true) {
+                var req = connection.receive();
+                if (req != null) {
+                    var rep = service.execute(req);
+                    try {
+                        rlSession.lock();
+                        connection.send(rep);
+                    } finally {
+                        rlSession.unlock();
+                    }
                 }
-                finally {
-                    rlSession.unlock();
-                }
-            }).start();
-        }
+            }
 
         sock.close();
     }

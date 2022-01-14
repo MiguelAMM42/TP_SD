@@ -1,16 +1,16 @@
 package dados;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Percurso implements Serializable {
+    private String id;
     private String origem;
     private String destino;
-    private Map<Integer, Voo> dias;
+    private int capacidade;
+    private Map<Date, Voo> dias;
     ReentrantLock rlPercurso = new ReentrantLock();
 
     public String getOrigem() {
@@ -29,15 +29,25 @@ public class Percurso implements Serializable {
         this.destino = destino;
     }
 
-    public Percurso(String origem, String destino, int nLugares) {
+    public int getCapacidade() {
+        return capacidade;
+    }
+
+    public void setCapacidade(int capacidade) {
+        this.capacidade = capacidade;
+    }
+
+    public Percurso(String id, String origem, String destino, int nLugares) {
+        this.id = id;
         this.origem = origem;
         this.destino = destino;
+        this.capacidade = nLugares;
         this.dias = new HashMap<>();
 
         for ( int i = 1 ; i < 31 ; i++) {
             String codigoViagem = generateID();
             Voo voo = new Voo(nLugares,codigoViagem);
-            dias.put(i,voo);
+            dias.put(LocalDateTime.now().getDayOfYear(),voo);
         }
     }
 
@@ -47,7 +57,7 @@ public class Percurso implements Serializable {
         return false;
     }
 
-    public String fazerReserva(int lugar, String utilizador, Integer dia) {
+    public boolean fazerReserva(String id, Utilizador utilizador, Date diaI, Date diaF) {
         return dias.get(dia).fazerReserva(lugar, utilizador);
     }
 

@@ -3,43 +3,73 @@ package dados;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Dados implements Serializable {
 
     private Map<String, Percurso> listaPercursos;
-    private Map<String, String> utilizadores;
-    private String passAdmin;
-    private ReentrantLock rlDados = new ReentrantLock();
+    private Map<String, Utilizador> utilizadores;
+    private Map<String, Viagem> viagens;
+    //private ReentrantLock rlDados = new ReentrantLock();
+    private ReentrantReadWriteLock lock;
+    private ReentrantReadWriteLock.ReadLock readLock;
+    private ReentrantReadWriteLock.WriteLock writeLock;
     private int dia;
 
     public Dados() {
         this.listaPercursos = new HashMap<>();
         this.utilizadores = new HashMap<>();
+        lock = new ReentrantReadWriteLock();
+        readLock = lock.readLock();
+        writeLock = lock.writeLock();
         this.dia = 0;
-        this.passAdmin = "admin";
+
     }
 
     public boolean autenticar(String nome, String pass) {
-        if (Objects.equals(nome, "admin"))
-            return Objects.equals(pass, passAdmin);
+        try{
+            readLock.lock();
+            return Objects.equals(utilizadores.get(nome), pass);
+        }finally {
+            readLock.unlock();
+        }
+    }
 
-        return Objects.equals(utilizadores.get(nome), pass);
+    public boolean registar(String nome, String pass, Boolean isAdmin) {
+
+        try{
+            writeLock.lock();
+            if (utilizadores.containsKey(nome))
+                return false; //mandar msg a dizer q esse nome ja existe?
+
+            Utilizador newU = new Utilizador(nome, pass, isAdmin);
+            utilizadores.put(nome,newU);
+            return true;
+
+        }finally {
+            writeLock.unlock();
+        }
     }
 
     public Set<PairOrigemDestino> getPercursos() {
-        Set<PairOrigemDestino> p = new HashSet<>();
-        for (Percurso percurso : listaPercursos.values()) {
-            PairOrigemDestino pair = new PairOrigemDestino(percurso.getOrigem(),percurso.getDestino());
-            p.add(pair);
+        try{
+            readLock.lock();
+            Set<PairOrigemDestino> p = new HashSet<>();
+            for (Percurso percurso : listaPercursos.values()) {
+                PairOrigemDestino pair = new PairOrigemDestino(percurso.getOrigem(),percurso.getDestino());
+                p.add(pair);
+            }
+            return p;
+        }finally {
+            readLock.unlock();
         }
-        return p;
     }
 
     public boolean addPercurso(String origem, String destino, int nLugares) {
         String id = generateID();
-        Percurso percurso = new Percurso(origem,destino,nLugares);
+        Percurso percurso = new Percurso(id,origem,destino,nLugares);
         try {
-            rlDados.lock();
+            writeLock.lock();
             Percurso value = listaPercursos.putIfAbsent(id, percurso);
             boolean b = value != null;
             if (b)
@@ -49,31 +79,76 @@ public class Dados implements Serializable {
             return b;
         }
         finally {
-            rlDados.unlock();
+            writeLock.unlock();
         }
     }
 
-    public String fazerReserva(String id, int lugar, String utilizador, Integer dia) {
-        if (! listaPercursos.containsKey(id))
-            return null;
+    public String fazerReservaTodosPercursos(String[] locais, Utilizador utilizador, Date diaI, Date diaF) {
+            String id = generateID();
+            boolean haPercurso = true;
 
-        return listaPercursos.get(id).fazerReserva(lugar, utilizador, dia);
+            Viagem viagem = new Viagem(utilizador,id);
+
+            for (int i = 0 ; locais[i+1] != null ; i++) {
+                haPercurso = fazerReservaEntreDoisLocais(id, locais[i],locais[i+1],utilizador,diaI,diaF,viagem);
+                if (!haPercurso) {
+                    fazerCancelamento(id);
+                    return null;
+                }
+            }
+            return id;
+    }
+
+    public boolean fazerReservaEntreDoisLocais(String id, String local1, String local2, Utilizador utilizador, Date diaI, Date diaF, Viagem viagem) {
+        try{
+
+            readLock.lock();
+
+            for (Percurso percurso: listaPercursos.values()) {
+                if(Objects.equals(percurso.getOrigem(), local1) && Objects.equals(percurso.getDestino(), local2)) {
+                    viagem.addPercurso(id);
+                    return percurso.fazerReserva(id, utilizador, diaI, diaF);
+                }
+            }
+
+            return false;
+
+        }finally {
+            readLock.unlock();
+        }
     }
 
     public boolean fazerCancelamento(String codigoViagem) {
-        String id;
-        boolean b = false;
-        for (Percurso percurso : listaPercursos.values())
-            if (percurso.fazerCancelamento(codigoViagem))
-                return true;
+        try{
 
-        return false;
+            writeLock.lock();
+
+            String id;
+            boolean b = false;
+            for (Percurso percurso : listaPercursos.values())
+                if (percurso.fazerCancelamento(codigoViagem))
+                    return true;
+
+            return false;
+
+        }finally {
+            writeLock.unlock();
+
+        }
     }
 
     public void encerrarDia() {
-        this.dia++;
-        for (Percurso percurso : listaPercursos.values()) {
-            percurso.encerrarDia(dia);
+        try{
+            writeLock.lock();
+            this.dia++;
+            for (Percurso percurso : listaPercursos.values()) {
+                percurso.encerrarDia(dia);
+            }
+
+        }finally {
+
+            writeLock.unlock();
+
         }
     }
 
@@ -93,6 +168,9 @@ public class Dados implements Serializable {
                 generatedString = generateID();
 
         if (utilizadores.containsKey(generatedString))
+            generatedString = generateID();
+
+        if (viagens.containsKey(generatedString))
             generatedString = generateID();
 
         return generatedString;
