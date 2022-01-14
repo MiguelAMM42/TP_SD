@@ -1,5 +1,9 @@
+package dados;
+
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
+
+import Connection;
 import service.Service;
 
 public class Session {

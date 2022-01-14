@@ -3,16 +3,18 @@ import java.net.Socket;
 import java.io.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Connection {
+public class Connection implements AutoCloseable{
 
     private final DataOutputStream out;
     private final ReentrantLock l_out= new ReentrantLock();
     private final DataInputStream in;
     private final ReentrantLock l_in= new ReentrantLock();
+    private final Socket socket;
 
     public Connection(Socket socket) throws IOException {
         this.out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         this.in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        this.socket = socket;
     }
 
     public void send(Service type) throws IOException {
@@ -39,7 +41,7 @@ public class Connection {
         }
     }
 
-    public Service receive() throws IOException {
+    public byte[] receive() throws IOException {
         try {
             l_in.lock();
             int len = in.readInt() - Integer.BYTES;  // len de tudo - inteiro

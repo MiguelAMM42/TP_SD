@@ -1,7 +1,9 @@
+package client;
+
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
+import service.*;
 
 public class Client {
     private final Socket csock;
@@ -9,8 +11,8 @@ public class Client {
     private ReentrantLock rlClient = new ReentrantLock();
     private BlockingMap replies = new BlockingMap();
 
-    public Client(InetAddress server, int port) throws IOException {
-        this.csock = new Socket(server, port);
+    public Client(String server, int port) throws IOException {
+        this.csock = new Socket(server,port);
         this.connection = new Connection(csock);
     }
 
@@ -33,10 +35,12 @@ public class Client {
         return replies.get(request.getID());
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        Client(,12345);
+        Client cli = new Client("localhost",12345);
         //interpretador
+        cli.run();
+
 
     }
 }

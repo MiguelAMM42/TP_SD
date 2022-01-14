@@ -1,13 +1,11 @@
 package service;
 import dados.Dados;
 
-public class EncerrarDia extends Service {
-    private Dados dados;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
-    public void execute() {
-        dados.encerrarDia();
-    }
-
-    public void
+public class EncerrarDia extends Service implements IService{
+    public static Service interpretRequest(DataInputStream dis);
+    public static DataOutputStream makeResponse(Service s);
 
 }
