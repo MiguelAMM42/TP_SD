@@ -87,32 +87,33 @@ public class Dados implements Serializable {
     }
 
 
-    public String fazerReservaTodosPercursos(String[] locais, Utilizador utilizador, LocalDate diaI, LocalDate diaF) {
-            String id = generateID();
+    public String fazerReservaTodosPercursos(String[] locais, String utilizadorNome, LocalDate diaI, LocalDate diaF) {
+        String id = generateID();
 
+        Utilizador utilizador = utilizadores.get(utilizadorNome);
 
-            for (int i = 0 ; locais[i+1] != null ; i++)
-                if (!existePercurso(locais[0],locais[1]))
-                    return null;
-
-            Viagem viagem = new Viagem(utilizador,id);
-            viagens.put(id, viagem);
-
-            boolean reservado = false;
-            for (; !diaI.isAfter(diaF) && !reservado ; diaI = diaI.plusDays(1) ) {
-                boolean f = true;
-                for (int i = 0; locais[i + 1] != null && f; i++)
-                    f = fazerReservaEntreDoisLocais(id, locais[i], locais[i + 1], utilizador, diaI, viagem);
-            }
-
-
-            if(!reservado){
-                fazerCancelamento(utilizador, id);
+        for (int i = 0 ; locais[i+1] != null ; i++)
+            if (!existePercurso(locais[0],locais[1]))
                 return null;
-            }
 
-            viagens.replace(id, viagem);
-            return id;
+        Viagem viagem = new Viagem(utilizador,id);
+        viagens.put(id, viagem);
+
+        boolean reservado = false;
+        for (; !diaI.isAfter(diaF) && !reservado ; diaI = diaI.plusDays(1) ) {
+            boolean f = true;
+            for (int i = 0; locais[i + 1] != null && f; i++)
+                f = fazerReservaEntreDoisLocais(id, locais[i], locais[i + 1], utilizador, diaI, viagem);
+        }
+
+
+        if(!reservado){
+            fazerCancelamento(utilizador.getNome(), id);
+            return null;
+        }
+
+        viagens.replace(id, viagem);
+        return id;
     }
 
     public boolean existePercurso(String origem, String destino) {
@@ -145,10 +146,12 @@ public class Dados implements Serializable {
         }
     }
 
-    public boolean fazerCancelamento(Utilizador utilizador, String codigoViagem) {
+    public boolean fazerCancelamento(String utilizadorNome, String codigoViagem) {
         try{
 
             writeLock.lock();
+
+            Utilizador utilizador = utilizadores.get(utilizadorNome);
 
             if (utilizador != viagens.get(codigoViagem).getUtilizador())
                 return false;
@@ -165,21 +168,18 @@ public class Dados implements Serializable {
 
         }finally {
             writeLock.unlock();
-
         }
     }
 
-    public void encerrarDia(LocalDate dia) {
+    public boolean encerrarDia(LocalDate dia) {
         try{
             writeLock.lock();
             for (Percurso percurso : listaPercursos.values()) {
                 percurso.encerrarDia(dia);
             }
-
+            return true;
         }finally {
-
             writeLock.unlock();
-
         }
     }
 
