@@ -1,6 +1,7 @@
 package dados;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,7 +11,7 @@ public class Percurso implements Serializable {
     private String origem;
     private String destino;
     private int capacidade;
-    private Map<Integer, Voo> dias;
+    private Map<LocalDate, Voo> dias;
     ReentrantLock rlPercurso = new ReentrantLock();
 
     public String getOrigem() {
@@ -44,10 +45,9 @@ public class Percurso implements Serializable {
         this.capacidade = nLugares;
         this.dias = new HashMap<>();
 
-        for ( int i = 1 ; i < 31 ; i++) {
-            String codigoViagem = generateID();
-            Voo voo = new Voo(nLugares,codigoViagem);
-            dias.put(i,voo);
+        for ( int i = 0 ; i < 100 ; i++) {
+            Voo voo = new Voo(nLugares);
+            dias.put(LocalDate.now().plusDays(i),voo);
         }
     }
 
@@ -57,21 +57,18 @@ public class Percurso implements Serializable {
         return false;
     }
 
-    public boolean fazerReserva(String id, Utilizador utilizador, Date diaI, Date diaF) {
-        return dias.get(dia).fazerReserva(lugar, utilizador);
+    public boolean fazerReserva(String id, Utilizador utilizador, LocalDate dia) {
+        return dias.get(dia).fazerReserva(id, utilizador);
     }
 
-    public boolean fazerCancelamento(String codigoViagem) {
+    public void fazerCancelamento(String codigoViagem) {
+
         for (Voo voo : dias.values())
-            if (Objects.equals(voo.getCodigoViagem(), codigoViagem)) {
-                voo.fazerCancelamento(codigoViagem);
-                return true;
-            }
+            voo.fazerCancelamento(codigoViagem);
 
-        return false;
     }
 
-    public void encerrarDia(int dia) {
+    public void encerrarDia(LocalDate dia) {
 
         try{
             rlPercurso.lock();
@@ -83,23 +80,4 @@ public class Percurso implements Serializable {
         }
     }
 
-    public String generateID() {
-        int leftLimit = 48; // numeral '0'
-        int rightLimit = 122; // letter 'z'
-        int targetStringLength = 10;
-        Random random = new Random();
-
-        String generatedString = random.ints(leftLimit, rightLimit + 1)
-                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-                .limit(targetStringLength)
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
-
-        for (Voo voo : dias.values()) {
-            if (Objects.equals(voo.getCodigoViagem(), generatedString))
-                generatedString = generateID();
-        }
-
-        return generatedString;
-    }
 }

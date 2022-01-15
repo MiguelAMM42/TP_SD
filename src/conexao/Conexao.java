@@ -5,6 +5,7 @@ import service.Type;
 import java.io.IOException;
 import java.net.Socket;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -49,23 +50,25 @@ public class Conexao implements AutoCloseable{
     public Frame receive() throws IOException {
         Type tag;
         String username;
-        byte[] data;
+        List<byte[]> dataReceived;
         try {
             l_in.lock();
             tag = Type.valueOf(in.readUTF());
             username = in.readUTF();
-            int tamanho = in.readInt();
+            int tamanho = in.readInt(); //tamanho da lista
             int i;
+            dataReceived = new ArrayList<>();
             for(i = 0; i < tamanho; i++) {
-
+                int dataSize = in.readInt();
+                byte[] dataChunk = new byte[dataSize];
+                in.readFully(dataChunk);
+                dataReceived.add(dataChunk);
             }
-            data = new byte[n];
-            in.readFully(data);
         }
         finally {
             l_in.unlock();
         }
-        return new Frame(tag,username,data);
+        return new Frame(tag,username,dataReceived);
     }
 
     public void close() throws IOException {

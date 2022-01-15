@@ -15,4 +15,16 @@ public class Frame {
         this.username = username;
         this.dataLst = dataLst;
     }
+
+    public Type getTagOp() {
+        return tagOp;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public List<byte[]> getDataLst() {
+        return dataLst;
+    }
 }

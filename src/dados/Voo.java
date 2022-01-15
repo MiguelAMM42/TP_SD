@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Voo implements Serializable {
     private boolean encerrado;
-    private Map<Integer, Lugar> lugaresAviao;
+    private final Map<Integer, Lugar> lugaresAviao;
     ReentrantLock rlVoo = new ReentrantLock();
 
     public boolean isEncerrado() {
@@ -20,34 +20,31 @@ public class Voo implements Serializable {
         this.encerrado = encerrado;
     }
 
-    public Voo(int nLugares, String codigoViagem) {
+    public Voo(int nLugares) {
         this.encerrado = false;
         this.lugaresAviao = new HashMap<>();
 
         for (int i = 1 ; i <= nLugares ; i++) {
-            lugaresAviao.put(i,null);
+            Lugar lugar = new Lugar(null, null);
+            lugaresAviao.put(i,lugar);
         }
     }
 
-    public String fazerReserva(int lugar, String utilizador) {
+    public boolean fazerReserva(String id, Utilizador utilizador) {
         rlVoo.lock();
         //dependendo se eu posso encerrar enquanto se reserva um lugar vai esta versao ou a q está comentada
         try {
             if(encerrado)
-                return null;
+                return false;
 
-            if (!lugaresAviao.containsKey(lugar))
-                return null;
+            for (Lugar lugar : lugaresAviao.values())
+                if (lugar.getUtilizador() == null) {
+                    lugar.setUtilizador(utilizador);
+                    lugar.setCodigoViagem(id);
+                    return true;
+                }
 
-            Lugar l = lugaresAviao.get(lugar);
-            if (l.getUtilizador() != null) {
-                rlVoo.unlock();
-                return null;
-            }
-            else {
-                l.setUtilizador(utilizador);
-                return l.getCodigoViagem();
-            }
+            return false;
         }
         finally {
             rlVoo.unlock();
@@ -83,24 +80,21 @@ public class Voo implements Serializable {
 
     }
 
-    public boolean fazerCancelamento(String codigoViagem, String utilizador) {
+    public boolean fazerCancelamento(String codigoViagem) {
         rlVoo.lock();
         try {
             if(encerrado)
                 return false;
 
-            if (!lugaresAviao.containsKey(lugar))
-                return false;
+            for (Lugar lugar : lugaresAviao.values()) {
+                if (Objects.equals(lugar.getCodigoViagem(), codigoViagem)) {
+                    lugar.setUtilizador(null);
+                    lugar.setCodigoViagem(null);
+                    return true;
+                }
+            }
 
-            Lugar l = lugaresAviao.get(lugar);
-            if (!Objects.equals(l.getUtilizador(), utilizador)) {
-                rlVoo.unlock();
-                return false;
-            }
-            else {
-                l.setUtilizador(null);
-                return true;
-            }
+            return false;
         }
         finally {
             rlVoo.unlock();

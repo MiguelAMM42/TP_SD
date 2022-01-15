@@ -17,6 +17,7 @@ public class Session {
         this.sock = sock;
     }
 
+    /*
     public void serve() throws Exception {
         Conexao connection = new Conexao(sock);
 
@@ -34,5 +35,5 @@ public class Session {
             }
 
         sock.close();
-    }
+    }*/
 }

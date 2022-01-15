@@ -13,11 +13,23 @@ public class Server {
         //Service service;
         ServerSocket ssock = new ServerSocket(12345);
 
-        Utilizador admin = new Utilizador("admin","admin123",true);
+        //Algumas infos para o sistema hardcoded; depois tentar adicionar manualmente algumas
 
+
+        dados.registar("admin","admin123",true);
+        dados.registar("utilizador","utilizador123",false);
+
+        dados.addPercurso("Porto","Madrid",120);
+        dados.addPercurso("Lisboa","Paris",120);
+        dados.addPercurso("Nova Iorque","Miami",210);
+        //Viagem viag1 = new Viagem(utilizador1,"viag123");
+
+
+        //servidor a aceitar pedidos
         while (true){
             Socket sock = ssock.accept();
-            new Thread(new Service(new Conexao(sock),dados)).start();
+            Service service = new Service(new Conexao(sock),dados);
+            new Thread(service).start();
         }
 
         /*

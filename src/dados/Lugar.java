@@ -4,20 +4,20 @@ import java.io.Serializable;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Lugar implements Serializable {
-    private String utilizador;
+    private Utilizador utilizador;
     private String codigoViagem;
     protected ReentrantLock rlLugar = new ReentrantLock();
 
-    public Lugar(String utilizador, String codigoViagem) {
+    public Lugar(Utilizador utilizador, String codigoViagem) {
         this.utilizador = utilizador;
         this.codigoViagem = codigoViagem;
     }
 
-    public String getUtilizador() {
+    public Utilizador getUtilizador() {
         return utilizador;
     }
 
-    public void setUtilizador(String utilizador) {
+    public void setUtilizador(Utilizador utilizador) {
         this.utilizador = utilizador;
     }
 

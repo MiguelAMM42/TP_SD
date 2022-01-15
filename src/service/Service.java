@@ -74,19 +74,19 @@ public class Service implements Runnable {
     public void run() {
         try {
             while (this.online) {
-                Frame command = this.conexao.receive();
+                Frame received = this.conexao.receive();
                 List<byte[]> data = new ArrayList<>(); //data a enviar no frame de resposta
                 try {
-                    switch (command.tagOp) {
-                        case Autenticar -> autenticar(data);
-                        case Registar -> registar(data)    ;
-                        case AdicionarVoo ->  adicionarVoo(data); ;
-                        case CancelamentoVoo -> // ;
-                        case EncerrarDia -> // ;
-                        case ReservaVoo -> // ;
-                        case MostrarListaVoo -> //  ;
-                        case LogOut -> logOut(); ;
-                        case Encerrar -> encerrarService() // ;
+                    switch (received.tagOp) {
+                        case Autenticar -> autenticar(received.dataLst);
+                        case Registar -> registar(received.dataLst)    ;
+                        case AdicionarVoo ->  adicionarVoo(received.dataLst);
+                        case CancelamentoVoo -> cancelarVoo(received.dataLst);
+                        case EncerrarDia -> encerrarDia(received.dataLst);
+                        case ReservaVoo -> reservarVoo(received.dataLst);
+                        case MostrarListaVoo -> mostrarListaVoos();
+                        case LogOut -> logOut();
+                        case Encerrar -> encerrarService();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -97,19 +97,44 @@ public class Service implements Runnable {
         }
     }
 
-    public void autenticar(List<byte[]> data){
+    public void autenticar(List<byte[]> data) throws IOException {
+
         String nome = new String(data.get(0));
         String passe = new String(data.get(1));
-        boolean existe = dados.autenticar(nome, passe);
-        if (existe) {
+        int existe = dados.autenticar(nome, passe);
+        String sucesso;
+        List<byte[]> dataToSend = new ArrayList<>();
+        if (existe != 0) {
+            sucesso = "1";
+            dataToSend.add(sucesso.getBytes(StandardCharsets.UTF_8));
+            String userType;
+            if(existe == 1){
+                 userType = "util";
+                 dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
+            }else{
+                userType = "admin";
+                dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
+            }
+            conexao.send(Type.Autenticar, nome, dataToSend);
+            this.username = nome;
             //TODO alterar a cena nos dados, pq agr o bool e diferente
+        }else{
+            sucesso = "0";
+            dataToSend.add(sucesso.getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.Autenticar, nome, dataToSend);
         }
     }
 
-    public void registar(List<byte[]> data){
+    public void registar(List<byte[]> data) throws IOException {
         String nome = new String(data.get(0));
         String passe = new String(data.get(1));
-        boolean existe = dados.autenticar(nome, passe);
+        int existeInt = dados.autenticar(nome, passe);
+        boolean existe;
+        if (existeInt == 0){
+            existe = false;
+        }else{
+            existe = true;
+        }
         dados.registar(nome, passe, existe);
         List<byte[]> info = new ArrayList<>();
         info.add("1".getBytes(StandardCharsets.UTF_8));
@@ -121,12 +146,26 @@ public class Service implements Runnable {
 
     }
 
+
+    public void cancelarVoo(List<byte[]> data){
+
+    }
+
+    public void encerrarDia(List<byte[]> data){
+
+    }
+
+    public void reservarVoo(List<byte[]> data){
+
+    }
+
     public void logOut(){
         this.loggedIn = false;
     }
 
 
-    public void encerrarService(){
+    public void encerrarService() throws IOException {
+        conexao.close();
         this.online = false;
     }
 
@@ -153,7 +192,7 @@ public class Service implements Runnable {
         List<byte[]> dataLst = new ArrayList<>();
 
         for (String voo: listaVoosToSend){
-
+            dataLst.add(voo.getBytes(StandardCharsets.UTF_8));
         }
 
         conexao.send(Type.MostrarListaVoo, username, dataLst);
