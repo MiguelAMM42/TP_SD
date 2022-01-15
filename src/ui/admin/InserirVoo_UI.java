@@ -1,7 +1,6 @@
 package ui.admin;
 
 import conexao.Conexao;
-import ui.Login_UI;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -10,19 +9,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.Socket;
 
-public class Administrador_UI extends JFrame{
+public class InserirVoo_UI extends JFrame{
     private JPanel panel1;
-    private JPanel panelAdministrador;
-    private JButton inserirVoo;
-    private JButton encerrarDia;
-    private JButton logOut;
-    private JButton encerrar;
+    private JTextField origemField;
+    private JTextField destinoField;
+    private JTextField capacidadeField;
+    private JButton confirmarButton;
+    private JButton voltarButton;
 
     private String username;
     private Socket socket;
     private Conexao conexao;
 
-    public Administrador_UI(Socket sock, Conexao conect, String nome) {
+    public InserirVoo_UI(Socket sock, Conexao conect, String nome) {
         this.username = nome;
         this.socket = sock;
         this.conexao = conect;
@@ -39,7 +38,7 @@ public class Administrador_UI extends JFrame{
             }
         });
 
-        this.setTitle("Menu Administrador");
+        this.setTitle("Inserir Voo");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         this.pack();
@@ -50,32 +49,21 @@ public class Administrador_UI extends JFrame{
     }
 
     private void setActions() {
-        inserirVoo.addActionListener(new ActionListener() {
+        confirmarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new InserirVoo_UI(socket,conexao,username);
-            }
-        });
-        encerrarDia.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new EncerrarDia_UI(socket,conexao,username);
+                String origemString = origemField.getText();
+                String destinoString = destinoField.getText();
+                String capacidadeString = capacidadeField.getText();;
 
             }
         });
-        logOut.addActionListener(new ActionListener() {
+        voltarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new Login_UI(socket,conexao);
+                new Administrador_UI(socket,conexao,username);
                 dispose();
-            }
-        });
-        encerrar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
             }
         });
     }
 }
-

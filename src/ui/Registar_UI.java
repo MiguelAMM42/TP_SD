@@ -51,6 +51,9 @@ public class Registar_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
 
+                //quando tem sucesso faz dispose
+                dispose();
+
             }
         });
     }

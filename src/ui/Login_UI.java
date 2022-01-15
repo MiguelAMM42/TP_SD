@@ -35,7 +35,7 @@ public class Login_UI extends JFrame{
         this.getRootPane().setDefaultButton(confirmarButton);
 
         this.socket = sock;
-        this.conexao = conect;
+        this.conexao = conect;                //not sure se devo dar dispose()
 
         setActions();
 
@@ -112,9 +112,9 @@ public class Login_UI extends JFrame{
                 //teve sucesso
 
                 if(typeUser.equals("admin")){
-                    new Administrador_UI(socket,conexao);
+                    new Administrador_UI(socket,conexao,nome);
                 }else{
-                    new Utilizador_UI(socket,conexao);
+                    new Utilizador_UI(socket,conexao,nome);
                 }
                 dispose();
 

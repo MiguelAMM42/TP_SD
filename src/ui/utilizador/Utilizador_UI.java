@@ -21,10 +21,12 @@ public class Utilizador_UI extends JFrame{
     private JButton logoutButton;
     private JButton sairButton;
 
+    private  String username;
     private Socket socket;
     private Conexao conexao;
 
-    public Utilizador_UI(Socket sock, Conexao conect) {
+    public Utilizador_UI(Socket sock, Conexao conect, String nome) {
+        this.username = nome;
         this.socket = sock;
         this.conexao = conect;
 
@@ -60,6 +62,7 @@ public class Utilizador_UI extends JFrame{
         cancelamentoReserva.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                new CancelamentoReserva_UI(socket,conexao,username);
 
             }
         });

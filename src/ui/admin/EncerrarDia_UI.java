@@ -10,19 +10,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.Socket;
 
-public class Administrador_UI extends JFrame{
+public class EncerrarDia_UI extends JFrame{
     private JPanel panel1;
-    private JPanel panelAdministrador;
-    private JButton inserirVoo;
-    private JButton encerrarDia;
-    private JButton logOut;
-    private JButton encerrar;
+    private JTextField dia;
+    private JTextField mes;
+    private JTextField ano;
+    private JButton confirmarButton;
+    private JButton voltarButton;
 
     private String username;
     private Socket socket;
     private Conexao conexao;
 
-    public Administrador_UI(Socket sock, Conexao conect, String nome) {
+    public EncerrarDia_UI(Socket sock, Conexao conect, String nome) {
         this.username = nome;
         this.socket = sock;
         this.conexao = conect;
@@ -39,7 +39,7 @@ public class Administrador_UI extends JFrame{
             }
         });
 
-        this.setTitle("Menu Administrador");
+        this.setTitle("Encerrar Dia");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         this.pack();
@@ -50,32 +50,21 @@ public class Administrador_UI extends JFrame{
     }
 
     private void setActions() {
-        inserirVoo.addActionListener(new ActionListener() {
+        confirmarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new InserirVoo_UI(socket,conexao,username);
-            }
-        });
-        encerrarDia.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new EncerrarDia_UI(socket,conexao,username);
+                String diaString = dia.getText();
+                String mesString = mes.getText();
+                String anoString = ano.getText();
 
             }
         });
-        logOut.addActionListener(new ActionListener() {
+        voltarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new Login_UI(socket,conexao);
+                new Administrador_UI(socket,conexao,username);
                 dispose();
-            }
-        });
-        encerrar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
             }
         });
     }
 }
-
