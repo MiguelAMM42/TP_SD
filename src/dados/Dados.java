@@ -183,36 +183,35 @@ public class Dados implements Serializable {
         }
     }
 
-    public Set<String[]> percursosPossíveis(String origem, String destino) {
-        return percursosPossíveisAux(origem, destino, 3);
+    public Set<String[]> percursosPossiveis(String origem, String destino) {
+        return percursosPossiveisAux(origem, destino, 3);
     }
 
-    public Set<String[]> percursosPossíveisAux(String origem, String destino, int n){
+    public Set<String[]> percursosPossiveisAux(String origem, String destino, int n){
         Set<String[]> percursos = new HashSet<>();
 
         Set<String> destinos = percursosOrigem(origem);
-        if (destinos.isEmpty())
-            return percursos;
 
-        if (n > 1) {
-            for (String d : destinos)
-                if(Objects.equals(d, destino)) {
-                    percursos.add(d);
+        for (String d : destinos) {
+            if (Objects.equals(d, destino)) {
+                String[] apendes = new String[2];
+                apendes[0] = origem;
+                apendes[1] = d;
+                percursos.add(apendes);
+            }
+            if (n > 1) {
+                Set<String[]> percursosP = percursosPossiveisAux(d, destino, n - 1);
+                for (String[] p : percursosP) {
+                    int l = p.length;
+                    String[] apendes2 = new String[l + 1];
+                    apendes2[0] = origem;
+                    System.arraycopy(p, 0, apendes2, 1, l);
+                    percursos.add(apendes2);
                 }
-                percursosPossíveisAux(d, destino, n - 1);
+            }
         }
 
-        if (n == 1) {
-            for (String d : destinos)
-                if(Objects.equals(d, destino)) {
-                    String[] apendes = new String[1];
-                    return d;
-                }
-        }
-
-
-        String[] p1voo = new String[2];
-        p1voo[0] = origem;
+        return percursos;
     }
 
     public Set<String> percursosOrigem(String origem) {
