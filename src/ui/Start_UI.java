@@ -56,14 +56,14 @@ public class Start_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 new Login_UI(socket,conexao);
-
+                dispose();
             }
         });
         registarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new Registar_UI(socket,conexao);
-
+                dispose();
             }
         });
         encerrarButton.addActionListener(new ActionListener() {

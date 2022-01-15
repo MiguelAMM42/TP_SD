@@ -53,13 +53,16 @@ public class Administrador_UI extends JFrame{
         inserirVoo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 new InserirVoo_UI(socket,conexao,username);
+                dispose();
             }
         });
         encerrarDia.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new EncerrarDia_UI(socket,conexao,username);
+                dispose();
 
             }
         });

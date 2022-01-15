@@ -4,9 +4,8 @@ import conexao.Conexao;
 import conexao.Frame;
 import dados.Dados;
 import dados.PairOrigemDestino;
-import dados.Percurso;
-
-import java.io.DataInputStream;
+import dados.Voo;
+import excessoes.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -14,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import static java.lang.Integer.parseInt;
 
 
 public class Service implements Runnable {
@@ -82,11 +83,12 @@ public class Service implements Runnable {
                     switch (received.tagOp) {
                         case Autenticar -> autenticar(received.dataLst);
                         case Registar -> registar(received.dataLst)    ;
-                        case AdicionarVoo ->  adicionarVoo(received.dataLst, received.username);
-                        case CancelamentoVoo -> cancelarVoo(received.dataLst, received.username);
-                        case EncerrarDia -> encerrarDia(received.dataLst, received.username);
-                        case ReservaVoo -> reservarVoo(received.dataLst, received.username);
+                        case AdicionarVoo ->  adicionarVoo(received.dataLst);
+                        case CancelamentoVoo -> cancelarVoo(received.dataLst);
+                        case EncerrarDia -> encerrarDia(received.dataLst);
+                        case ReservaVoo -> reservarVoo(received.dataLst);
                         case MostrarListaVoo -> mostrarListaVoos();
+                        case PercursosPossíveis -> percursosPossiveis(received.dataLst);
                         case LogOut -> logOut();
                         case Encerrar -> encerrarService();
                     }
@@ -106,24 +108,30 @@ public class Service implements Runnable {
         int existe = dados.autenticar(nome, passe);
         String sucesso;
         List<byte[]> dataToSend = new ArrayList<>();
-        if (existe != 0) {
-            sucesso = "1";
-            dataToSend.add(sucesso.getBytes(StandardCharsets.UTF_8));
-            String userType;
-            if(existe == 1){
-                 userType = "util";
-                 dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
-            }else{
-                userType = "admin";
-                dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
+        try {
+            if (existe != 0) {
+                sucesso = "1";
+                dataToSend.add(sucesso.getBytes(StandardCharsets.UTF_8));
+                String userType;
+                if (existe == 1) {
+                    userType = "util";
+                    dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
+                } else {
+                    userType = "admin";
+                    dataToSend.add(userType.getBytes(StandardCharsets.UTF_8));
+                }
+                conexao.send(Type.Autenticar, nome, dataToSend);
+                this.username = nome;
+                //TODO alterar a cena nos dados, pq agr o bool e diferente
+            } else {
+                throw new LoginInvalidoException();
             }
-            conexao.send(Type.Autenticar, nome, dataToSend);
-            this.username = nome;
-            //TODO alterar a cena nos dados, pq agr o bool e diferente
-        }else{
+        }
+        catch (IOException | LoginInvalidoException e) {
             sucesso = "0";
             dataToSend.add(sucesso.getBytes(StandardCharsets.UTF_8));
             conexao.send(Type.Autenticar, nome, dataToSend);
+
         }
     }
 
@@ -131,35 +139,54 @@ public class Service implements Runnable {
         String nome = new String(data.get(0));
         String passe = new String(data.get(1));
         int existeInt = dados.autenticar(nome, passe);
-        boolean existe;
-        if (existeInt == 0){
-            existe = false;
-        }else{
-            existe = true;
-        }
-        dados.registar(nome, passe, existe);
         List<byte[]> info = new ArrayList<>();
-        info.add("1".getBytes(StandardCharsets.UTF_8));
-        conexao.send(Type.Registar, nome, info);
+        try {
+            if (existeInt != 0)
+                throw new UtilizadorJaExistenteException();
+                //utilizador já existe
+                //só pode criar utilizador
+            dados.registar(nome, passe, false);
+            info.add("1".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.Registar, nome, info);
+        }
+        catch (IOException | UtilizadorJaExistenteException e) {
+            info.add("0".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.Registar, nome, info);
+        }
 
     }
 
-    public void adicionarVoo(List<byte[]> data,String username) throws IOException {
-        String origem = new String(data.get(0));
-        String destino = new String(data.get(1));
-        int nLugares = Integer.parseInt(Arrays.toString(data.get(2)));
-        boolean sucesso = dados.addPercurso(origem, destino, nLugares);
+    public void adicionarVoo(List<byte[]> data) throws IOException {
         List<byte[]> dataToSend = new ArrayList<>();
-        if (sucesso)
-            dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
-        else
-            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+        try {
+            String origem = new String(data.get(0));
+            String destino = new String(data.get(1));
+            String nLugaresString = new String(data.get(2));
+            int nLugares = parseInt(nLugaresString);
+            boolean sucesso = dados.addPercurso(origem, destino, nLugares);
 
-        conexao.send(Type.AdicionarVoo,username,dataToSend);
+            if (sucesso)
+                dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
+            else
+                throw new VooJaExistenteException();
+
+            conexao.send(Type.AdicionarVoo, username, dataToSend);
+        }
+        catch (NumberFormatException e1) {
+            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.AdicionarVoo, username, dataToSend);
+        }
+        catch (VooJaExistenteException e2){
+            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.AdicionarVoo, username, dataToSend);
+        }
+
     }
 
 
-    public void cancelarVoo(List<byte[]> data, String username) throws IOException {
+    public void cancelarVoo(List<byte[]> data) throws IOException {
         String codViagem = new String(data.get(0));
         boolean sucesso = dados.fazerCancelamento(username,codViagem);
         List<byte[]> dataToSend = new ArrayList<>();
@@ -172,32 +199,53 @@ public class Service implements Runnable {
         conexao.send(Type.CancelamentoVoo,username,dataToSend);
     }
 
-    public void encerrarDia(List<byte[]> data, String username) throws IOException {
-        int diaDia = Integer.parseInt(Arrays.toString(data.get(0)));
-        int diaMes = Integer.parseInt(Arrays.toString(data.get(1)));
-        int diaAno = Integer.parseInt(Arrays.toString(data.get(2)));
-        LocalDate dia = LocalDate.of(diaAno,diaMes,diaDia);
-
-        boolean sucesso = dados.encerrarDia(dia);
+    public void encerrarDia(List<byte[]> data) throws IOException, InterruptedException {
+        //Thread.sleep(30000);
         List<byte[]> dataToSend = new ArrayList<>();
+        try{
+            String diaDia = new String(data.get(0));
+            String diaMes = new String(data.get(1));
+            String diaAno = new String(data.get(2));
 
-        if (sucesso)
-            dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
-        else
+            int dia = parseInt(diaAno);
+            int mes = parseInt(diaMes);
+            int ano = parseInt(diaDia);
+
+            LocalDate day = LocalDate.of(dia,mes,ano);
+
+            boolean sucesso = dados.encerrarDia(day);
+
+            if (sucesso) {
+                dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
+            }
+            else{
+                throw new DiaNaoExistenteException();
+            }
+
+            conexao.send(Type.Encerrar,username,dataToSend);
+
+        }catch (DiaNaoExistenteException e) {
+            //e.getMessage();
             dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.Encerrar, username, dataToSend);
 
-        conexao.send(Type.Encerrar,username,dataToSend);
+        }catch (NumberFormatException e) {
+            dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+            dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
+            conexao.send(Type.Encerrar, username, dataToSend);
+        }
     }
 
-    public void reservarVoo(List<byte[]> data, String username) throws IOException {
-        int diaDiaI = Integer.parseInt(Arrays.toString(data.get(0)));
-        int diaMesI = Integer.parseInt(Arrays.toString(data.get(1)));
-        int diaAnoI = Integer.parseInt(Arrays.toString(data.get(2)));
+    public void reservarVoo(List<byte[]> data) throws IOException {
+        int diaDiaI = parseInt(Arrays.toString(data.get(0)));
+        int diaMesI = parseInt(Arrays.toString(data.get(1)));
+        int diaAnoI = parseInt(Arrays.toString(data.get(2)));
         LocalDate diaI = LocalDate.of(diaAnoI,diaMesI,diaDiaI);
 
-        int diaDiaF = Integer.parseInt(Arrays.toString(data.get(3)));
-        int diaMesF = Integer.parseInt(Arrays.toString(data.get(4)));
-        int diaAnoF = Integer.parseInt(Arrays.toString(data.get(5)));
+        int diaDiaF = parseInt(Arrays.toString(data.get(3)));
+        int diaMesF = parseInt(Arrays.toString(data.get(4)));
+        int diaAnoF = parseInt(Arrays.toString(data.get(5)));
         LocalDate diaF = LocalDate.of(diaAnoF,diaMesF,diaDiaF);
 
         int imax = data.size() - 5;
@@ -255,7 +303,7 @@ public class Service implements Runnable {
 
     }
 
-    public void percursosPossiveis(List<byte[]> data, String username) throws IOException {
+    public void percursosPossiveis(List<byte[]> data) throws IOException {
         String origem = new String(data.get(0));
         String destino = new String(data.get(1));
         Set<String[]> set = dados.percursosPossiveis(origem, destino);

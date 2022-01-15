@@ -49,6 +49,7 @@ public class Login_UI extends JFrame{
             }
         });
 
+        fail.setVisible(false);
         this.setTitle("Login");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -64,6 +65,7 @@ public class Login_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 login();
+                dispose();
 
             }
         });
@@ -121,6 +123,7 @@ public class Login_UI extends JFrame{
             }else{
                 fail.setText("ID ou password inválidos");
                 fail.setVisible(true);
+                fail.setForeground(Color.red);
                 this.pack();
             }
         } catch (IOException e) {

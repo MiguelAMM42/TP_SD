@@ -1,13 +1,20 @@
 package ui.admin;
 
 import conexao.Conexao;
+import conexao.Frame;
+import service.Type;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InserirVoo_UI extends JFrame{
     private JPanel panel1;
@@ -16,6 +23,7 @@ public class InserirVoo_UI extends JFrame{
     private JTextField capacidadeField;
     private JButton confirmarButton;
     private JButton voltarButton;
+    private JLabel ansLabel;
 
     private String username;
     private Socket socket;
@@ -38,6 +46,7 @@ public class InserirVoo_UI extends JFrame{
             }
         });
 
+        ansLabel.setVisible(false);
         this.setTitle("Inserir Voo");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -52,10 +61,7 @@ public class InserirVoo_UI extends JFrame{
         confirmarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String origemString = origemField.getText();
-                String destinoString = destinoField.getText();
-                String capacidadeString = capacidadeField.getText();;
-
+                adicionar();
             }
         });
         voltarButton.addActionListener(new ActionListener() {
@@ -65,5 +71,56 @@ public class InserirVoo_UI extends JFrame{
                 dispose();
             }
         });
+    }
+
+    private void adicionar(){
+        String origemString = origemField.getText();
+        String destinoString = destinoField.getText();
+        String capacidadeString = capacidadeField.getText();
+
+        List<byte[]> dataToSend = new ArrayList<>();
+        dataToSend.add(origemString.getBytes(StandardCharsets.UTF_8));
+        dataToSend.add(destinoString.getBytes(StandardCharsets.UTF_8));
+        dataToSend.add(capacidadeString.getBytes(StandardCharsets.UTF_8));
+
+
+        try {
+            conexao.send(service.Type.AdicionarVoo,username,dataToSend);
+
+            //recebe resposta
+            Frame ans = conexao.receive();
+            String sucesso = new String(ans.getDataLst().get(0));
+            if(sucesso.equals("1")){
+                //sucesso
+                //mudar para box de mensagem
+                JOptionPane.showMessageDialog(this,
+                        "Voo adicionado com sucesso!",
+                        "ADICIONADO",
+                        JOptionPane.PLAIN_MESSAGE);
+                new Administrador_UI(socket,conexao,username);
+                dispose();
+
+            }else{
+                String erro = new String(ans.getDataLst().get(1));
+                if(erro.equals("0")) {
+                    ansLabel.setText("Falha na adição do voo: capacidade inválida!");
+                    ansLabel.setVisible(true);
+                    ansLabel.setForeground(Color.red);
+                    pack();
+                }
+                if(erro.equals("1")) {
+                    ansLabel.setText("Falha na adição do voo: Voo já existente!");
+                    ansLabel.setVisible(true);
+                    ansLabel.setForeground(Color.red);
+                    pack();
+                }
+
+            }
+
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
     }
 }

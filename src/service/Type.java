@@ -8,6 +8,7 @@ public enum Type {
     EncerrarDia,
     MostrarListaVoo,
     ReservaVoo,
+    PercursosPossíveis,
     LogOut,
     Encerrar;
 }

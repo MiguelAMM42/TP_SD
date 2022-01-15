@@ -33,7 +33,7 @@ public class Dados implements Serializable {
     public int autenticar(String nome, String pass) {
         try{
             readLock.lock();
-            if (!Objects.equals(utilizadores.get(nome).getPassword(), pass))
+            if (!utilizadores.containsKey(nome))
                 return 0;
             if (utilizadores.get(nome).isAdmin())
                 return 2;
@@ -78,8 +78,12 @@ public class Dados implements Serializable {
         Percurso percurso = new Percurso(id,origem,destino,nLugares);
         try {
             writeLock.lock();
-            Percurso value = listaPercursos.putIfAbsent(id, percurso);
-            return value != null;
+            if (existePercurso(origem, destino))
+                return false;
+            else {
+                listaPercursos.put(id, percurso);
+                return true;
+            }
         }
         finally {
             writeLock.unlock();
@@ -174,6 +178,11 @@ public class Dados implements Serializable {
     public boolean encerrarDia(LocalDate dia) {
         try{
             writeLock.lock();
+            Map.Entry<String,Percurso> entry = listaPercursos.entrySet().iterator().next();
+            String key = entry.getKey();
+            if (!listaPercursos.get(key).encerrarDia(dia)) {
+                return false;
+            }
             for (Percurso percurso : listaPercursos.values()) {
                 percurso.encerrarDia(dia);
             }

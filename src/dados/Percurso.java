@@ -68,12 +68,15 @@ public class Percurso implements Serializable {
 
     }
 
-    public void encerrarDia(LocalDate dia) {
-
+    public boolean encerrarDia(LocalDate dia) {
         try{
             rlPercurso.lock();
+            if (!dias.containsKey(dia)){
+                return false;
+            }
             Voo v = dias.get(dia);
             v.setEncerrado(true);
+            return true;
         }
         finally{
             rlPercurso.unlock();
