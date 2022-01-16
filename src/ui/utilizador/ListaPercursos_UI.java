@@ -24,6 +24,7 @@ public class ListaPercursos_UI extends JFrame{
     private JLabel ansLabel;
     private JTextField origem;
     private JTextField destino;
+    private JButton voltarButton;
 
     private  String username;
     private Socket socket;
@@ -79,6 +80,13 @@ public class ListaPercursos_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 lstPercursos();
+            }
+        });
+        voltarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new Utilizador_UI(socket,conexao,username);
+                dispose();
             }
         });
 
