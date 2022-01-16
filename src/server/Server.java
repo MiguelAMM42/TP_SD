@@ -1,6 +1,7 @@
-package dados;
+package server;
 
 import conexao.Conexao;
+import dados.Dados;
 import service.Service;
 import ui.ServerFechar_UI;
 
@@ -18,7 +19,7 @@ public class Server {
 
 
         dados.registar("admin","admin123",true);
-        dados.registar("a","a",false);
+        dados.registar("cliente","cliente123",false);
 
         dados.addPercurso("Porto","Madrid",120);
         dados.addPercurso("Lisboa","Paris",120);

@@ -49,34 +49,6 @@ public class Voo implements Serializable {
         finally {
             rlVoo.unlock();
         }
-        //try {
-        //    if (encerrado)
-        //        return false;
-
-        //    if (!lugaresAviao.containsKey(lugar))
-        //        return false;
-
-        //    Lugar l = lugaresAviao.get(lugar);
-        //    if (l.getUtilizador() != null) {
-        //        rlVoo.unlock();
-        //        return false;
-        //    }
-        //    else {
-        //        try {
-        //            l.rlLugar.lock();
-        //            rlVoo.unlock();
-        //            l.setUtilizador(utilizador);
-        //            return true;
-        //        }
-        //        finally {
-        //            l.rlLugar.unlock();
-        //        }
-        //    }
-        //}
-        //finally {
-        //    if (rlVoo.isLocked())
-        //        rlVoo.unlock();
-        //}
 
     }
 
@@ -99,34 +71,7 @@ public class Voo implements Serializable {
         finally {
             rlVoo.unlock();
         }
-    //    try{
-    //        if (encerrado)
-    //            return false;
-
-    //        if (!lugaresAviao.containsKey(lugar))
-    //            return false;
-
-    //        Lugar l = lugaresAviao.get(lugar);
-    //        if (!Objects.equals(l.getUtilizador(), utilizador)) {
-    //            rlVoo.unlock();
-    //            return false;
-    //        }
-    //        else {
-    //            try {
-    //                l.rlLugar.lock();
-    //                rlVoo.unlock();
-    //                l.setUtilizador(null);
-    //                return true;
-    //            }
-    //            finally {
-    //                l.rlLugar.unlock();
-    //            }
-    //        }
-   //     }
-    //    finally {
-    //        if (rlVoo.isLocked())
-    //            rlVoo.unlock();
-   //     }
+   
     }
 
 }
