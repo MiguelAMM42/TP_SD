@@ -4,7 +4,6 @@ import conexao.Conexao;
 import conexao.Frame;
 import dados.Dados;
 import dados.PairOrigemDestino;
-import dados.Voo;
 import excessoes.*;
 
 import java.io.*;
@@ -90,7 +89,7 @@ public class Service implements Runnable {
                         case MostrarListaVoo -> mostrarListaVoos();
                         case PercursosPossíveis -> percursosPossiveis(received.dataLst);
                         case LogOut -> logOut();
-                        case Encerrar -> encerrarService();
+                        case Encerrar -> encerrarService(received.getUsername());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -230,18 +229,18 @@ public class Service implements Runnable {
                 throw new DiaNaoExistenteException();
             }
 
-            conexao.send(Type.Encerrar,username,dataToSend);
+            conexao.send(Type.EncerrarDia,username,dataToSend);
 
         }catch (DiaNaoExistenteException e) {
             //e.getMessage();
             dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
             dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
-            conexao.send(Type.Encerrar, username, dataToSend);
+            conexao.send(Type.EncerrarDia, username, dataToSend);
 
         }catch (NumberFormatException e) {
             dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
             dataToSend.add("1".getBytes(StandardCharsets.UTF_8));
-            conexao.send(Type.Encerrar, username, dataToSend);
+            conexao.send(Type.EncerrarDia, username, dataToSend);
         }
     }
 
@@ -250,24 +249,35 @@ public class Service implements Runnable {
         String cod = new String(data.get(0));
         try {
             if(cod.equals("0")){
-                int numEscalas = Integer.parseInt(Arrays.toString(data.get(1)));
+                String codNEscalas = new String(data.get(1));
+                dataToSend.add("0".getBytes(StandardCharsets.UTF_8));
+                dataToSend.add(codNEscalas.getBytes(StandardCharsets.UTF_8));
+                conexao.send(Type.ReservaVoo,username,dataToSend);
             }
             else{
-                int diaDiaI = Integer.parseInt(Arrays.toString(data.get(1)));
-                int diaMesI = Integer.parseInt(Arrays.toString(data.get(2)));
-                int diaAnoI = Integer.parseInt(Arrays.toString(data.get(3)));
+                String diaDiaIString = new String(data.get(1));
+                String diaMesIString = new String(data.get(2));
+                String diaAnoIString = new String(data.get(3));
+                int diaDiaI = parseInt(diaDiaIString);
+                int diaMesI = parseInt(diaMesIString);
+                int diaAnoI = parseInt(diaAnoIString);
                 LocalDate diaI = LocalDate.of(diaAnoI,diaMesI,diaDiaI);
 
-                int diaDiaF = Integer.parseInt(Arrays.toString(data.get(4)));
-                int diaMesF = Integer.parseInt(Arrays.toString(data.get(5)));
-                int diaAnoF = Integer.parseInt(Arrays.toString(data.get(6)));
+                String diaDiaFString = new String(data.get(4));
+                String diaMesFString = new String(data.get(5));
+                String diaAnoFString = new String(data.get(6));
+                int diaDiaF = parseInt(diaDiaFString);
+                int diaMesF = parseInt(diaMesFString);
+                int diaAnoF = parseInt(diaAnoFString);
                 LocalDate diaF = LocalDate.of(diaAnoF,diaMesF,diaDiaF);
 
-                int imax = data.size() - 6;
+                int imax = data.size() - 7;
                 String[] locais = new String[imax];
-                for (int i = 0 ; i < imax ; i++)
-                    locais[i] = Arrays.toString(data.get(i + 7));
+                for (int i = 0 ; i < imax ; i++) {
+                    String local = new String(data.get(i + 7));
+                    locais[i] = local;
 
+                }
                 String codViagem = dados.fazerReservaTodosPercursos(locais, username, diaI, diaF);
                 if (codViagem == null) throw new DiaNaoExistenteException();
 
@@ -296,9 +306,16 @@ public class Service implements Runnable {
     }
 
 
-    public void encerrarService() throws IOException {
-        conexao.close();
+    public void encerrarService(String username) throws IOException {
+
         this.online = false;
+        this.username = username;
+
+        conexao.send(Type.Encerrar, this.username, new ArrayList<>());
+
+        //feita do lado do cliente?
+        //conexao.close();
+
     }
 
 
@@ -366,25 +383,6 @@ public class Service implements Runnable {
         }
 
     }
-
-
-
-
-
-    public void guardaDados(){
-        try {
-            File fileOne = new File("db/dados");
-            FileOutputStream fos = new FileOutputStream(fileOne);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(dados);
-            oos.flush();
-            oos.close();
-            fos.close();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public static Dados carregaDados(){
         File toRead = new File("db/dados");

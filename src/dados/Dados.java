@@ -96,8 +96,9 @@ public class Dados implements Serializable {
 
         Utilizador utilizador = utilizadores.get(utilizadorNome);
 
-        for (int i = 0 ; locais[i+1] != null ; i++)
-            if (!existePercurso(locais[0],locais[1]))
+
+        for (int i = 0 ; i < locais.length-1 ; i++)
+            if (!existePercurso(locais[i],locais[i+1]))
                 return null;
 
         Viagem viagem = new Viagem(utilizador,id);
@@ -106,8 +107,11 @@ public class Dados implements Serializable {
         boolean reservado = false;
         for (; !diaI.isAfter(diaF) && !reservado ; diaI = diaI.plusDays(1) ) {
             boolean f = true;
-            for (int i = 0; locais[i + 1] != null && f; i++)
+            for (int i = 0; i < locais.length-1 && f; i++)
                 f = fazerReservaEntreDoisLocais(id, locais[i], locais[i + 1], utilizador, diaI, viagem);
+            if(f){
+                reservado = true;
+            }
         }
 
 
@@ -137,8 +141,8 @@ public class Dados implements Serializable {
             readLock.lock();
 
             for (Percurso percurso: listaPercursos.values()) {
-                if(Objects.equals(percurso.getOrigem(), origem) && Objects.equals(percurso.getDestino(), destino)) {
-                    viagem.addPercurso(id);
+                if(percurso.getOrigem().equals(origem) && percurso.getDestino().equals(destino)) {
+                    viagem.addPercurso(percurso.getId());
                     return percurso.fazerReserva(id, utilizador, dia);
                 }
             }

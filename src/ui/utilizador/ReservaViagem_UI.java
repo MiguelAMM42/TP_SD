@@ -3,6 +3,7 @@ package ui.utilizador;
 import conexao.Conexao;
 import conexao.Frame;
 import service.Type;
+import ui.admin.Administrador_UI;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
@@ -39,6 +40,7 @@ public class ReservaViagem_UI extends JFrame{
     private  String username;
     private Socket socket;
     private Conexao conexao;
+    private List<CitieCard_UI> cities_Input;
 
 
     public ReservaViagem_UI(Socket sock, Conexao conect, String nome) {
@@ -83,8 +85,8 @@ public class ReservaViagem_UI extends JFrame{
                 //envia logo cenas para o servidor
                 List<byte[]> sendNumEscalas = new ArrayList<>();
 
-                sendNumEscalas.add("0'".getBytes(StandardCharsets.UTF_8));
-                sendNumEscalas.add(numEscalas.getText().getBytes(StandardCharsets.UTF_8));
+                sendNumEscalas.add("0".getBytes(StandardCharsets.UTF_8));
+                sendNumEscalas.add("100".getBytes(StandardCharsets.UTF_8));
 
                 try {
                     conexao.send(service.Type.ReservaVoo,username,sendNumEscalas);
@@ -92,15 +94,14 @@ public class ReservaViagem_UI extends JFrame{
                     Frame ans = conexao.receive();
                     String ansString0 = new String(ans.getDataLst().get(0));
                     String ansString1 = new String(ans.getDataLst().get(1));
-                    if (ansString0.equals("0") && ansString1.equals("1")){
-                        numEscalas.setText("Formato");
+                    if (!ansString0.equals("0") || !ansString1.equals("100")){
+                        numEscalas.setText("Formato de número de escalas inválido");
                         numEscalasLabel.setVisible(true);
                         numEscalasLabel.setForeground(Color.red);
                         pack();
-                        createCitiesLabel(numEscalas.getText());
 
                     }else{
-                        createCitiesLabel(numEscalas.getText());
+                        cities_Input = createCitiesLabel(numEscalas.getText());
 
                     }
 
@@ -129,10 +130,19 @@ public class ReservaViagem_UI extends JFrame{
 
             }
         });
+        voltarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new Utilizador_UI(socket,conexao,username);
+                dispose();
+            }
+        });
     }
 
 
-    private void createCitiesLabel(String numCitiesString){
+    private List<CitieCard_UI> createCitiesLabel(String numCitiesString){
+
+        List<CitieCard_UI> lst = new ArrayList<>();
 
         cities.removeAll();
 
@@ -142,8 +152,12 @@ public class ReservaViagem_UI extends JFrame{
             CitieCard_UI city =  new CitieCard_UI(String.valueOf(i+1));
             cities.add(city);
             cities.add(Box.createRigidArea(new Dimension(0,10)));
+            lst.add(city);
+
         }
 
+
+        return lst;
     }
 
     private boolean confirmarReserva() throws IOException {
@@ -160,10 +174,10 @@ public class ReservaViagem_UI extends JFrame{
         sendInfos.add(mesFim.getText().getBytes(StandardCharsets.UTF_8));
         sendInfos.add(anoFim.getText().getBytes(StandardCharsets.UTF_8));
 
-        for (Component component : cities.getComponents()) {
-            if (component instanceof JTextField) {
-                sendInfos.add(((JTextField) component).getText().getBytes(StandardCharsets.UTF_8));
-            }
+        for (CitieCard_UI c : cities_Input) {
+
+            sendInfos.add(c.getCidadeName().getBytes(StandardCharsets.UTF_8));
+
         }
 
         conexao.send(service.Type.ReservaVoo,username,sendInfos);
@@ -194,6 +208,7 @@ public class ReservaViagem_UI extends JFrame{
                     "RESERVA",
                     JOptionPane.PLAIN_MESSAGE);
             reservado = true;
+            System.out.println(ans_reserva1+"\n");
         }
 
 

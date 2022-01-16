@@ -14,6 +14,11 @@ public class Percurso implements Serializable {
     private Map<LocalDate, Voo> dias;
     ReentrantLock rlPercurso = new ReentrantLock();
 
+
+    public String getId() {
+        return id;
+    }
+
     public String getOrigem() {
         return origem;
     }

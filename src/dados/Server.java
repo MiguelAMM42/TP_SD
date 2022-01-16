@@ -2,6 +2,7 @@ package dados;
 
 import conexao.Conexao;
 import service.Service;
+import ui.ServerFechar_UI;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,11 +38,7 @@ public class Server {
 
 
         //servidor a aceitar pedidos
-        while (true){
-            Socket sock = ssock.accept();
-            Service service = new Service(new Conexao(sock),dados);
-            new Thread(service).start();
-        }
+        new ServerFechar_UI(dados,ssock);
 
         /*
         while(true) {

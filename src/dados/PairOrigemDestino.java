@@ -1,6 +1,8 @@
 package dados;
 
-public class PairOrigemDestino {
+import java.io.Serializable;
+
+public class PairOrigemDestino implements Serializable {
     protected String origem;
     protected String destino;
 

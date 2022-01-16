@@ -1,8 +1,10 @@
 package dados;
 
+import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
-public class Viagem {
+public class Viagem implements Serializable {
     private Map<Integer, String> percursos;
     private int nPrecursos;
     private Utilizador utilizador;
@@ -12,6 +14,7 @@ public class Viagem {
         this.nPrecursos = 0;
         this.utilizador = utilizador;
         this.idViagem = idViagem;
+        this.percursos = new HashMap<>();
     }
 
     public Map<Integer, String> getPercursos() {

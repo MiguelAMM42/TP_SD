@@ -1,10 +1,12 @@
 package ui;
 
 import conexao.Conexao;
+import conexao.Frame;
 import dados.Dados;
 import service.Type;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -38,10 +40,22 @@ public class Start_UI extends JFrame{
                 //e será para salvar os dados
                 //usar enum do encerrar
                 //ln.save();
+                try {
+                    conexao.send(service.Type.Encerrar,"fechar",new ArrayList<>());
+
+                    Frame received = conexao.receive();
+
+                    conexao.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
             }
         });
 
-        this.setTitle("aeroporto haha e engraçado pq tem porto");
+        this.setTitle(":)");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         this.pack();
@@ -64,16 +78,6 @@ public class Start_UI extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 new Registar_UI(socket,conexao);
                 dispose();
-            }
-        });
-        encerrarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    conexao.send(service.Type.Encerrar," ",new ArrayList<>());
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
             }
         });
 

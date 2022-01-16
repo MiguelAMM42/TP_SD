@@ -73,12 +73,6 @@ public class Administrador_UI extends JFrame{
                 dispose();
             }
         });
-        encerrar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
     }
 }
 

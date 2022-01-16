@@ -96,11 +96,5 @@ public class Utilizador_UI extends JFrame{
 
             }
         });
-        sairButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
     }
 }
