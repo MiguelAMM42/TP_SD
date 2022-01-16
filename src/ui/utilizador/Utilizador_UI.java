@@ -2,6 +2,7 @@ package ui.utilizador;
 
 import conexao.Conexao;
 import ui.Login_UI;
+import ui.Registar_UI;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -56,6 +57,8 @@ public class Utilizador_UI extends JFrame{
         reservaViagem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                new ReservaViagem_UI(socket,conexao,username);
+                dispose();
 
             }
         });
@@ -63,18 +66,25 @@ public class Utilizador_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 new CancelamentoReserva_UI(socket,conexao,username);
+                dispose();
 
             }
         });
         lstVoos.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                new ListaVoosDiretos_UI(socket,conexao,username);
+                dispose();
 
             }
         });
         lstPercursos.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                new ListaPercursos_UI(socket,conexao,username);
+                dispose();
+
+
 
             }
         });

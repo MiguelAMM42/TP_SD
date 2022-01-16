@@ -51,12 +51,6 @@ public class Percurso implements Serializable {
         }
     }
 
-    public boolean temViagem(String codigoViagem) {
-
-
-        return false;
-    }
-
     public boolean fazerReserva(String id, Utilizador utilizador, LocalDate dia) {
         return dias.get(dia).fazerReserva(id, utilizador);
     }

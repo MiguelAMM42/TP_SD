@@ -1,6 +1,6 @@
 package dados;
 
-import java.io.Serializable;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -43,17 +43,17 @@ public class Dados implements Serializable {
         }
     }
 
-    public boolean registar(String nome, String pass, Boolean isAdmin) {
-
+    public boolean registar(String nome, String pass, Boolean isAdmin) throws InterruptedException {
+        //Thread.sleep(2000);
         try{
             writeLock.lock();
             if (utilizadores.containsKey(nome))
                 return false; //mandar msg a dizer q esse nome ja existe?
 
             Utilizador newU = new Utilizador(nome, pass, isAdmin);
-            utilizadores.put(nome,newU);
-            return true;
 
+            utilizadores.put(nome, newU);
+            return true;
         }finally {
             writeLock.unlock();
         }
@@ -157,6 +157,7 @@ public class Dados implements Serializable {
 
             Utilizador utilizador = utilizadores.get(utilizadorNome);
 
+            if (!viagens.containsKey(codigoViagem)) return false;
             if (utilizador != viagens.get(codigoViagem).getUtilizador())
                 return false;
 
@@ -202,7 +203,7 @@ public class Dados implements Serializable {
         Set<String> destinos = percursosOrigem(origem);
 
         for (String d : destinos) {
-            if (Objects.equals(d, destino)) {
+            if (d.equals(destino)) {
                 String[] apendes = new String[2];
                 apendes[0] = origem;
                 apendes[1] = d;
@@ -228,7 +229,7 @@ public class Dados implements Serializable {
         Set<String> origemPairs = new HashSet<>();
 
         for (PairOrigemDestino pair : allPairs) {
-            if (Objects.equals(pair.getOrigem(), origem))
+            if (pair.getOrigem().equals(origem))
                 origemPairs.add(pair.getDestino());
         }
 

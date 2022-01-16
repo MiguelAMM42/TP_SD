@@ -65,7 +65,6 @@ public class Login_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 login();
-                dispose();
 
             }
         });
@@ -105,13 +104,13 @@ public class Login_UI extends JFrame{
             Frame serveAns = conexao.receive();
 
             byte[] sucessBytes = serveAns.getDataLst().get(0);
-            byte[] typeUserBytes = serveAns.getDataLst().get(1);
             String sucess = new String(sucessBytes);
-            String  typeUser = new String(typeUserBytes);
             //System.out.println(ans);
 
             if (sucess.equals("1")) {
                 //teve sucesso
+                byte[] typeUserBytes = serveAns.getDataLst().get(1);
+                String  typeUser = new String(typeUserBytes);
 
                 if(typeUser.equals("admin")){
                     new Administrador_UI(socket,conexao,nome);

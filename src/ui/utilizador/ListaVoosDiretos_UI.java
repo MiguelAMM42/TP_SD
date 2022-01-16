@@ -3,8 +3,6 @@ package ui.utilizador;
 import conexao.Conexao;
 import conexao.Frame;
 import service.Type;
-import ui.Login_UI;
-import ui.admin.Administrador_UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,20 +16,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CancelamentoReserva_UI extends JFrame{
+public class ListaVoosDiretos_UI extends JFrame{
     private JPanel panel1;
-    private JPanel cancPanel;
-    private JLabel txtAviso;
-    private JTextField codField;
     private JButton confirmarButton;
-    private JButton voltarButton;
     private JLabel ansLabel;
+    private JLabel lista;
 
     private  String username;
     private Socket socket;
     private Conexao conexao;
 
-    public CancelamentoReserva_UI(Socket sock, Conexao conect, String nome) {
+    public ListaVoosDiretos_UI(Socket sock, Conexao conect, String nome) {
         this.username = nome;
         this.socket = sock;
         this.conexao = conect;
@@ -39,6 +34,7 @@ public class CancelamentoReserva_UI extends JFrame{
         setActions();
 
         ansLabel.setVisible(false);
+
 
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -50,7 +46,9 @@ public class CancelamentoReserva_UI extends JFrame{
             }
         });
 
-        this.setTitle("Cancelar Reserva");
+        lstVoosDiretos();
+
+        this.setTitle("Lista Voos Diretos");
         this.setContentPane(panel1);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         this.pack();
@@ -64,41 +62,32 @@ public class CancelamentoReserva_UI extends JFrame{
         confirmarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cancelarReserva();
-            }
-        });
-        voltarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
                 new Utilizador_UI(socket,conexao,username);
                 dispose();
             }
         });
     }
 
-    private void cancelarReserva(){
-        String codViagemString = codField.getText();
+    private void lstVoosDiretos(){
+
         List<byte[]> dataToSend = new ArrayList<>();
-        dataToSend.add(codViagemString.getBytes(StandardCharsets.UTF_8));
+
 
 
         try {
-            conexao.send(service.Type.CancelamentoVoo,username,dataToSend);
+            conexao.send(service.Type.MostrarListaVoo,username,dataToSend);
 
             Frame ansReceived  = conexao.receive();
             String sucesso = new String(ansReceived.getDataLst().get(0));
 
             if(sucesso.equals("1")){
-                JOptionPane.showMessageDialog(this,
-                        "Viagem cancelada com sucesso!",
-                        "CANCELADO",
-                        JOptionPane.PLAIN_MESSAGE);
-                new Utilizador_UI(socket,conexao,username);
-                dispose();
+                List<byte[]> sublist = ansReceived.getDataLst().subList(1, ansReceived.getDataLst().size());
+                this.lista.setText(toHTMLListaVoosDiretos(sublist));
+
 
 
             }else{
-                ansLabel.setText("Falha no cancelamento da reserva: código inválido!");
+                ansLabel.setText("!!!LISTA VAZIA!!!");
                 ansLabel.setVisible(true);
                 ansLabel.setForeground(Color.red);
                 pack();
@@ -107,6 +96,30 @@ public class CancelamentoReserva_UI extends JFrame{
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
     }
+
+    private String toHTMLListaVoosDiretos(List<byte[]> lstBytes){
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<html>\n");
+        html.append("<body>\n");
+
+        for(byte[] voo : lstBytes.subList(0, lstBytes.size()-1)) {
+            html.append(new String(voo)).append("<br/>");
+        }
+
+        html.append(new String(lstBytes.get(lstBytes.size()-1)));
+
+        html.append("</body>\n");
+        html.append("</html>");
+
+
+        String htmlString = html.toString();
+
+
+        return htmlString;
+    }
+
+
 }
