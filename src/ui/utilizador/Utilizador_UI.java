@@ -1,6 +1,7 @@
 package ui.utilizador;
 
 import conexao.Conexao;
+import conexao.Frame;
 import ui.Login_UI;
 import ui.Registar_UI;
 
@@ -9,7 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 
 public class Utilizador_UI extends JFrame{
@@ -40,6 +43,18 @@ public class Utilizador_UI extends JFrame{
                 //e será para salvar os dados
                 //usar enum do encerrar
                 //ln.save();
+                try {
+                    conexao.send(service.Type.Encerrar,"fechar",new ArrayList<>());
+
+                    Frame received = conexao.receive();
+
+                    conexao.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
             }
         });
 

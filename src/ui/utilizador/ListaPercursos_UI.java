@@ -24,7 +24,6 @@ public class ListaPercursos_UI extends JFrame{
     private JLabel ansLabel;
     private JTextField origem;
     private JTextField destino;
-    private JButton sairButton;
 
     private  String username;
     private Socket socket;
@@ -48,6 +47,18 @@ public class ListaPercursos_UI extends JFrame{
                 //e será para salvar os dados
                 //usar enum do encerrar
                 //ln.save();
+                try {
+                    conexao.send(service.Type.Encerrar,"fechar",new ArrayList<>());
+
+                    Frame received = conexao.receive();
+
+                    conexao.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
             }
         });
 
@@ -68,13 +79,6 @@ public class ListaPercursos_UI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 lstPercursos();
-            }
-        });this.
-        sairButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Utilizador_UI(socket,conexao,username);
-                dispose();
             }
         });
 

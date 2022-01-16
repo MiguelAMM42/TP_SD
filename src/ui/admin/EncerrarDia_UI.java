@@ -44,6 +44,18 @@ public class EncerrarDia_UI extends JFrame{
                 //e será para salvar os dados
                 //usar enum do encerrar
                 //ln.save();
+                try {
+                    conexao.send(service.Type.Encerrar,"fechar",new ArrayList<>());
+
+                    Frame received = conexao.receive();
+
+                    conexao.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
             }
         });
 
